@@ -61,6 +61,16 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				health: {
+					excellent: 'hsl(var(--health-excellent))',
+					good: 'hsl(var(--health-good))',
+					warning: 'hsl(var(--health-warning))',
+					critical: 'hsl(var(--health-critical))',
+					'excellent-bg': 'hsl(var(--health-excellent-bg))',
+					'good-bg': 'hsl(var(--health-good-bg))',
+					'warning-bg': 'hsl(var(--health-warning-bg))',
+					'critical-bg': 'hsl(var(--health-critical-bg))'
 				}
 			},
 			borderRadius: {
@@ -89,6 +99,16 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
+			},
+			backgroundImage: {
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-health': 'var(--gradient-health)',
+				'gradient-surface': 'var(--gradient-surface)'
+			},
+			boxShadow: {
+				'soft': 'var(--shadow-soft)',
+				'medium': 'var(--shadow-medium)',
+				'strong': 'var(--shadow-strong)'
 			}
 		}
 	},
