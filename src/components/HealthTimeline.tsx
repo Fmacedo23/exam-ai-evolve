@@ -13,9 +13,10 @@ interface ExamData {
 
 interface HealthTimelineProps {
   exams: ExamData[];
+  onExamClick?: (exam: ExamData) => void;
 }
 
-export function HealthTimeline({ exams }: HealthTimelineProps) {
+export function HealthTimeline({ exams, onExamClick }: HealthTimelineProps) {
   // Agrupar exames por mês/ano
   const groupedExams = exams.reduce((acc, exam) => {
     const date = new Date(exam.date);
@@ -105,6 +106,7 @@ export function HealthTimeline({ exams }: HealthTimelineProps) {
               <Card 
                 key={exam.id} 
                 className="border-0 shadow-soft hover:shadow-medium transition-shadow cursor-pointer"
+                onClick={() => onExamClick?.(exam)}
               >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">

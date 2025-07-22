@@ -2,10 +2,13 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Activity, Calendar, TrendingUp, FileText, Heart } from "lucide-react";
+import { Upload, Activity, Calendar, TrendingUp, FileText, Heart, Plus } from "lucide-react";
 import { HealthTimeline } from "./HealthTimeline";
 import { ExamUpload } from "./ExamUpload";
 import { HealthStatus } from "./HealthStatus";
+import { MobileNav } from "./MobileNav";
+import { UploadModal } from "./UploadModal";
+import { ExamViewer } from "./ExamViewer";
 
 interface ExamData {
   id: string;
@@ -14,6 +17,15 @@ interface ExamData {
   status: "excellent" | "good" | "warning" | "critical";
   summary: string;
   fileName: string;
+  details?: {
+    parameters: Array<{
+      name: string;
+      value: string;
+      reference: string;
+      status: "normal" | "high" | "low";
+    }>;
+    recommendations: string[];
+  };
 }
 
 // Mock data - será substituído por dados reais
@@ -24,7 +36,20 @@ const mockExams: ExamData[] = [
     date: "2024-12-15",
     status: "good",
     summary: "Todos os valores dentro da normalidade, leve baixa em vitamina D",
-    fileName: "hemograma_dez2024.pdf"
+    fileName: "hemograma_dez2024.pdf",
+    details: {
+      parameters: [
+        { name: "Hemoglobina", value: "14.2 g/dL", reference: "12.0-15.5", status: "normal" },
+        { name: "Hematócrito", value: "42.1%", reference: "36.0-46.0", status: "normal" },
+        { name: "Leucócitos", value: "7.200/mm³", reference: "4.000-11.000", status: "normal" },
+        { name: "Vitamina D", value: "22 ng/mL", reference: "30-100", status: "low" }
+      ],
+      recommendations: [
+        "Aumentar exposição solar segura (15-30 min/dia)",
+        "Incluir alimentos ricos em vitamina D na dieta",
+        "Considerar suplementação conforme orientação médica"
+      ]
+    }
   },
   {
     id: "2", 
@@ -32,7 +57,21 @@ const mockExams: ExamData[] = [
     date: "2024-09-10",
     status: "warning",
     summary: "Colesterol LDL levemente elevado (145 mg/dL). Recomenda-se dieta e exercícios",
-    fileName: "lipidico_set2024.pdf"
+    fileName: "lipidico_set2024.pdf",
+    details: {
+      parameters: [
+        { name: "Colesterol Total", value: "220 mg/dL", reference: "<200", status: "high" },
+        { name: "LDL", value: "145 mg/dL", reference: "<100", status: "high" },
+        { name: "HDL", value: "45 mg/dL", reference: ">40", status: "normal" },
+        { name: "Triglicerídeos", value: "180 mg/dL", reference: "<150", status: "high" }
+      ],
+      recommendations: [
+        "Reduzir consumo de gorduras saturadas",
+        "Aumentar atividade física (150 min/semana)",
+        "Incluir fibras solúveis na alimentação",
+        "Acompanhamento médico em 3 meses"
+      ]
+    }
   },
   {
     id: "3",
@@ -40,13 +79,26 @@ const mockExams: ExamData[] = [
     date: "2024-06-20",
     status: "excellent",
     summary: "Glicose normal (89 mg/dL). Excelente controle metabólico",
-    fileName: "glicose_jun2024.pdf"
+    fileName: "glicose_jun2024.pdf",
+    details: {
+      parameters: [
+        { name: "Glicose", value: "89 mg/dL", reference: "70-99", status: "normal" },
+        { name: "Hemoglobina Glicada", value: "5.1%", reference: "<5.7", status: "normal" }
+      ],
+      recommendations: [
+        "Manter alimentação balanceada atual",
+        "Continuar atividade física regular",
+        "Repetir exame em 12 meses"
+      ]
+    }
   }
 ];
 
 export function Dashboard() {
   const [exams, setExams] = useState<ExamData[]>(mockExams);
   const [isUploading, setIsUploading] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedExam, setSelectedExam] = useState<ExamData | null>(null);
 
   const handleExamUpload = (file: File) => {
     setIsUploading(true);
@@ -83,29 +135,64 @@ export function Dashboard() {
   const recentExam = exams[0];
 
   return (
-    <div className="min-h-screen bg-gradient-surface">
-      {/* Header */}
-      <header className="bg-card shadow-soft border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-primary rounded-lg">
-                <Heart className="h-6 w-6 text-primary-foreground" />
+    <>
+      <div className="min-h-screen bg-gradient-surface">
+        {/* Mobile Header */}
+        <header className="bg-card shadow-soft border-b border-border lg:hidden">
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-gradient-primary rounded-lg">
+                  <Heart className="h-5 w-5 text-primary-foreground" />
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold text-foreground">Minha Saúde</h1>
+                  <p className="text-xs text-muted-foreground">Dashboard</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Minha Saúde</h1>
-                <p className="text-sm text-muted-foreground">Dashboard de Análise de Exames</p>
+              
+              <div className="flex items-center space-x-2">
+                <Button
+                  size="sm"
+                  onClick={() => setShowUploadModal(true)}
+                  className="bg-gradient-primary hover:opacity-90 p-2"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+                <MobileNav onUploadClick={() => setShowUploadModal(true)} />
               </div>
             </div>
-            
-            <ExamUpload onUpload={handleExamUpload} isUploading={isUploading} />
           </div>
-        </div>
-      </header>
+        </header>
+
+        {/* Desktop Header */}
+        <header className="hidden lg:block bg-card shadow-soft border-b border-border">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-gradient-primary rounded-lg">
+                  <Heart className="h-6 w-6 text-primary-foreground" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-foreground">Minha Saúde</h1>
+                  <p className="text-sm text-muted-foreground">Dashboard de Análise de Exames</p>
+                </div>
+              </div>
+              
+              <Button
+                onClick={() => setShowUploadModal(true)}
+                className="bg-gradient-primary hover:opacity-90"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Enviar Exame
+              </Button>
+            </div>
+          </div>
+        </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Status Cards Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
           <HealthStatus 
             status={getOverallHealthStatus()}
             title="Status Geral"
@@ -113,45 +200,47 @@ export function Dashboard() {
           />
           
           <Card className="border-0 shadow-soft">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
-                <FileText className="h-4 w-4 mr-2" />
-                Total de Exames
+            <CardHeader className="pb-2 lg:pb-3">
+              <CardTitle className="text-xs lg:text-sm font-medium text-muted-foreground flex items-center">
+                <FileText className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
+                <span className="hidden lg:inline">Total de Exames</span>
+                <span className="lg:hidden">Exames</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-foreground">{exams.length}</div>
-              <p className="text-sm text-muted-foreground">Analisados por IA</p>
+            <CardContent className="pt-0">
+              <div className="text-xl lg:text-3xl font-bold text-foreground">{exams.length}</div>
+              <p className="text-xs lg:text-sm text-muted-foreground">Por IA</p>
             </CardContent>
           </Card>
 
           <Card className="border-0 shadow-soft">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
-                <Calendar className="h-4 w-4 mr-2" />
-                Último Exame
+            <CardHeader className="pb-2 lg:pb-3">
+              <CardTitle className="text-xs lg:text-sm font-medium text-muted-foreground flex items-center">
+                <Calendar className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
+                <span className="hidden lg:inline">Último Exame</span>
+                <span className="lg:hidden">Último</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-semibold text-foreground">
+            <CardContent className="pt-0">
+              <div className="text-sm lg:text-lg font-semibold text-foreground">
                 {recentExam ? new Date(recentExam.date).toLocaleDateString('pt-BR') : 'Nenhum'}
               </div>
-              <p className="text-sm text-muted-foreground">
-                {recentExam ? recentExam.type : 'Envie seu primeiro exame'}
+              <p className="text-xs lg:text-sm text-muted-foreground truncate">
+                {recentExam ? recentExam.type : 'Envie seu primeiro'}
               </p>
             </CardContent>
           </Card>
 
           <Card className="border-0 shadow-soft">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
-                <TrendingUp className="h-4 w-4 mr-2" />
+            <CardHeader className="pb-2 lg:pb-3">
+              <CardTitle className="text-xs lg:text-sm font-medium text-muted-foreground flex items-center">
+                <TrendingUp className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
                 Tendência
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-semibold text-health-good">Melhorando</div>
-              <p className="text-sm text-muted-foreground">Baseado no histórico</p>
+            <CardContent className="pt-0">
+              <div className="text-sm lg:text-lg font-semibold text-health-good">Melhorando</div>
+              <p className="text-xs lg:text-sm text-muted-foreground">Histórico</p>
             </CardContent>
           </Card>
         </div>
@@ -168,7 +257,7 @@ export function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <HealthTimeline exams={exams} />
+                <HealthTimeline exams={exams} onExamClick={setSelectedExam} />
               </CardContent>
             </Card>
           </div>
@@ -236,6 +325,23 @@ export function Dashboard() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+
+      {/* Upload Modal */}
+      <UploadModal
+        open={showUploadModal}
+        onOpenChange={setShowUploadModal}
+        onUpload={handleExamUpload}
+        isUploading={isUploading}
+      />
+
+      {/* Exam Viewer */}
+      {selectedExam && (
+        <ExamViewer
+          exam={selectedExam}
+          onClose={() => setSelectedExam(null)}
+        />
+      )}
+    </>
   );
 }
