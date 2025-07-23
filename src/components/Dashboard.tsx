@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Activity, Calendar, TrendingUp, FileText, Heart, Plus } from "lucide-react";
+import { Upload, Activity, Calendar, TrendingUp, FileText, Heart, Plus, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { HealthTimeline } from "./HealthTimeline";
 import { ExamUpload } from "./ExamUpload";
 import { HealthStatus } from "./HealthStatus";
@@ -109,6 +110,7 @@ export function Dashboard() {
   const [selectedExam, setSelectedExam] = useState<ExamData | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
+  const navigate = useNavigate();
 
   // Verificar se é primeira visita do usuário
   useEffect(() => {
@@ -180,6 +182,14 @@ export function Dashboard() {
               <div className="flex items-center space-x-2">
                 <Button
                   size="sm"
+                  variant="outline"
+                  onClick={() => navigate('/profile')}
+                  className="p-2"
+                >
+                  <User className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="sm"
                   onClick={() => setShowUploadModal(true)}
                   className="bg-gradient-primary hover:opacity-90 p-2"
                 >
@@ -205,13 +215,22 @@ export function Dashboard() {
                 </div>
               </div>
               
-              <Button
-                onClick={() => setShowUploadModal(true)}
-                className="bg-gradient-primary hover:opacity-90"
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Enviar Exame
-              </Button>
+              <div className="flex items-center space-x-3">
+                <Button
+                  onClick={() => navigate('/profile')}
+                  variant="outline"
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Meu Perfil
+                </Button>
+                <Button
+                  onClick={() => setShowUploadModal(true)}
+                  className="bg-gradient-primary hover:opacity-90"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Enviar Exame
+                </Button>
+              </div>
             </div>
           </div>
         </header>

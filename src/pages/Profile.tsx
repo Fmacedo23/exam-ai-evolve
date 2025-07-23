@@ -103,31 +103,34 @@ export default function Profile() {
     <div className="min-h-screen bg-gradient-surface">
       {/* Header */}
       <header className="bg-card shadow-soft border-b border-border">
-        <div className="max-w-4xl mx-auto px-4 py-4">
+        <div className="px-4 py-3 lg:max-w-4xl lg:mx-auto lg:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar
+            <div className="flex items-center space-x-2 lg:space-x-3">
+              <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="p-2">
+                <ArrowLeft className="h-4 w-4 lg:mr-2" />
+                <span className="hidden lg:inline">Voltar</span>
               </Button>
+              <div className="lg:hidden">
+                <h1 className="text-lg font-bold text-foreground">Perfil</h1>
+              </div>
             </div>
             
             <div className="flex items-center space-x-2">
               {isEditing ? (
                 <>
-                  <Button variant="outline" size="sm" onClick={handleCancel}>
-                    <X className="h-4 w-4 mr-2" />
-                    Cancelar
+                  <Button variant="outline" size="sm" onClick={handleCancel} className="p-2 lg:px-3">
+                    <X className="h-4 w-4 lg:mr-2" />
+                    <span className="hidden lg:inline">Cancelar</span>
                   </Button>
-                  <Button size="sm" onClick={handleSave}>
-                    <Save className="h-4 w-4 mr-2" />
-                    Salvar
+                  <Button size="sm" onClick={handleSave} className="p-2 lg:px-3">
+                    <Save className="h-4 w-4 lg:mr-2" />
+                    <span className="hidden lg:inline">Salvar</span>
                   </Button>
                 </>
               ) : (
-                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                  <Edit2 className="h-4 w-4 mr-2" />
-                  Editar
+                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="p-2 lg:px-3">
+                  <Edit2 className="h-4 w-4 lg:mr-2" />
+                  <span className="hidden lg:inline">Editar</span>
                 </Button>
               )}
             </div>
@@ -135,22 +138,22 @@ export default function Profile() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+      <div className="px-4 py-4 lg:max-w-4xl lg:mx-auto lg:py-8 space-y-6 lg:space-y-8">
         {/* Profile Header */}
         <Card className="border-0 shadow-medium">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
-              <Avatar className="h-24 w-24">
-                <AvatarFallback className="text-2xl bg-gradient-primary text-primary-foreground">
+          <CardContent className="p-4 lg:p-6">
+            <div className="flex flex-col items-center space-y-4 lg:flex-row lg:items-start lg:space-y-0 lg:space-x-6">
+              <Avatar className="h-16 w-16 lg:h-24 lg:w-24">
+                <AvatarFallback className="text-lg lg:text-2xl bg-gradient-primary text-primary-foreground">
                   {userData.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               
-              <div className="flex-1 text-center md:text-left">
+              <div className="flex-1 text-center lg:text-left w-full">
                 {isEditing ? (
-                  <div className="space-y-4">
+                  <div className="space-y-3 lg:space-y-4">
                     <div>
-                      <Label htmlFor="name">Nome</Label>
+                      <Label htmlFor="name" className="text-sm">Nome</Label>
                       <Input
                         id="name"
                         value={editData?.name || ''}
@@ -159,7 +162,7 @@ export default function Profile() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="age">Idade</Label>
+                      <Label htmlFor="age" className="text-sm">Idade</Label>
                       <Input
                         id="age"
                         type="number"
@@ -171,9 +174,9 @@ export default function Profile() {
                   </div>
                 ) : (
                   <>
-                    <h1 className="text-3xl font-bold text-foreground">{userData.name}</h1>
-                    <p className="text-lg text-muted-foreground">{userData.age} anos</p>
-                    <p className="text-sm text-muted-foreground mt-2">
+                    <h1 className="text-2xl lg:text-3xl font-bold text-foreground">{userData.name}</h1>
+                    <p className="text-base lg:text-lg text-muted-foreground">{userData.age} anos</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground mt-2">
                       Membro desde {new Date(userData.joinDate!).toLocaleDateString('pt-BR')}
                     </p>
                   </>
@@ -181,10 +184,10 @@ export default function Profile() {
               </div>
 
               {/* Health Score */}
-              <div className="text-center">
-                <div className="bg-gradient-primary p-4 rounded-lg text-primary-foreground">
-                  <div className="text-2xl font-bold">{userData.healthScore}%</div>
-                  <div className="text-sm opacity-90">Score de Saúde</div>
+              <div className="text-center lg:flex-shrink-0">
+                <div className="bg-gradient-primary p-3 lg:p-4 rounded-lg text-primary-foreground">
+                  <div className="text-xl lg:text-2xl font-bold">{userData.healthScore}%</div>
+                  <div className="text-xs lg:text-sm opacity-90">Score de Saúde</div>
                 </div>
               </div>
             </div>
@@ -192,36 +195,36 @@ export default function Profile() {
         </Card>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
           <Card className="border-0 shadow-soft">
-            <CardContent className="p-6 text-center">
-              <div className="bg-primary/10 p-3 rounded-full inline-block mb-3">
-                <Calendar className="h-6 w-6 text-primary" />
+            <CardContent className="p-4 lg:p-6 text-center">
+              <div className="bg-primary/10 p-2 lg:p-3 rounded-full inline-block mb-2 lg:mb-3">
+                <Calendar className="h-5 w-5 lg:h-6 lg:w-6 text-primary" />
               </div>
-              <div className="text-2xl font-bold text-foreground">{userData.totalExams}</div>
-              <p className="text-sm text-muted-foreground">Exames Analisados</p>
+              <div className="text-xl lg:text-2xl font-bold text-foreground">{userData.totalExams}</div>
+              <p className="text-xs lg:text-sm text-muted-foreground">Exames Analisados</p>
             </CardContent>
           </Card>
 
           <Card className="border-0 shadow-soft">
-            <CardContent className="p-6 text-center">
-              <div className="bg-health-good/10 p-3 rounded-full inline-block mb-3">
-                <TrendingUp className="h-6 w-6 text-health-good" />
+            <CardContent className="p-4 lg:p-6 text-center">
+              <div className="bg-health-good/10 p-2 lg:p-3 rounded-full inline-block mb-2 lg:mb-3">
+                <TrendingUp className="h-5 w-5 lg:h-6 lg:w-6 text-health-good" />
               </div>
-              <div className="text-2xl font-bold text-foreground">Melhorando</div>
-              <p className="text-sm text-muted-foreground">Tendência Geral</p>
+              <div className="text-xl lg:text-2xl font-bold text-foreground">Melhorando</div>
+              <p className="text-xs lg:text-sm text-muted-foreground">Tendência Geral</p>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-soft">
-            <CardContent className="p-6 text-center">
-              <div className="bg-secondary/10 p-3 rounded-full inline-block mb-3">
-                <Heart className="h-6 w-6 text-secondary" />
+          <Card className="border-0 shadow-soft sm:col-span-1">
+            <CardContent className="p-4 lg:p-6 text-center">
+              <div className="bg-secondary/10 p-2 lg:p-3 rounded-full inline-block mb-2 lg:mb-3">
+                <Heart className="h-5 w-5 lg:h-6 lg:w-6 text-secondary" />
               </div>
-              <div className="text-2xl font-bold text-foreground">
+              <div className="text-lg lg:text-2xl font-bold text-foreground">
                 {new Date(userData.lastExamDate!).toLocaleDateString('pt-BR')}
               </div>
-              <p className="text-sm text-muted-foreground">Último Exame</p>
+              <p className="text-xs lg:text-sm text-muted-foreground">Último Exame</p>
             </CardContent>
           </Card>
         </div>
