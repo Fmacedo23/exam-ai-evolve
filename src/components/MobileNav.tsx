@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Heart, Upload, Activity, Settings, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface MobileNavProps {
   onUploadClick: () => void;
@@ -9,6 +10,7 @@ interface MobileNavProps {
 
 export function MobileNav({ onUploadClick }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div className="lg:hidden">
@@ -34,7 +36,10 @@ export function MobileNav({ onUploadClick }: MobileNavProps) {
               <Button 
                 variant="ghost" 
                 className="w-full justify-start" 
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  navigate('/');
+                  setIsOpen(false);
+                }}
               >
                 <Activity className="h-4 w-4 mr-3" />
                 Dashboard
@@ -52,7 +57,14 @@ export function MobileNav({ onUploadClick }: MobileNavProps) {
                 Enviar Exame
               </Button>
               
-              <Button variant="ghost" className="w-full justify-start">
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate('/profile');
+                  setIsOpen(false);
+                }}
+              >
                 <User className="h-4 w-4 mr-3" />
                 Perfil
               </Button>
