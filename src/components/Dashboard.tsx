@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import { HealthStatus } from "./HealthStatus";
 import { MobileNav } from "./MobileNav";
 import { UploadModal } from "./UploadModal";
 import { ExamViewer } from "./ExamViewer";
+import { Onboarding } from "./Onboarding";
 
 interface ExamData {
   id: string;
@@ -94,11 +95,36 @@ const mockExams: ExamData[] = [
   }
 ];
 
+interface UserData {
+  name: string;
+  age: string;
+  goals: string[];
+  conditions: string[];
+}
+
 export function Dashboard() {
   const [exams, setExams] = useState<ExamData[]>(mockExams);
   const [isUploading, setIsUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedExam, setSelectedExam] = useState<ExamData | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
+
+  // Verificar se é primeira visita do usuário
+  useEffect(() => {
+    const storedUserData = localStorage.getItem('healthtrack-user');
+    if (storedUserData) {
+      setUserData(JSON.parse(storedUserData));
+    } else {
+      setShowOnboarding(true);
+    }
+  }, []);
+
+  const handleOnboardingComplete = (data: UserData) => {
+    localStorage.setItem('healthtrack-user', JSON.stringify(data));
+    setUserData(data);
+    setShowOnboarding(false);
+  };
 
   const handleExamUpload = (file: File) => {
     setIsUploading(true);
@@ -341,6 +367,11 @@ export function Dashboard() {
           exam={selectedExam}
           onClose={() => setSelectedExam(null)}
         />
+      )}
+
+      {/* Onboarding */}
+      {showOnboarding && (
+        <Onboarding onComplete={handleOnboardingComplete} />
       )}
     </>
   );
