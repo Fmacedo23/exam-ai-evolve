@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Activity, Calendar, TrendingUp, FileText, Heart, Plus, User } from "lucide-react";
+import { Upload, Activity, Calendar, TrendingUp, FileText, Heart, Plus, User, Target } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { HealthTimeline } from "./HealthTimeline";
 import { ExamUpload } from "./ExamUpload";
@@ -14,6 +14,9 @@ import { Onboarding } from "./Onboarding";
 import { NotificationSystem } from "./NotificationSystem";
 import { HealthCharts } from "./HealthCharts";
 import { ExamComparison } from "./ExamComparison";
+import { HealthGoals } from "./HealthGoals";
+import { ThemeToggle } from "./ThemeToggle";
+import { LoadingOverlay } from "./LoadingStates";
 
 interface ExamData {
   id: string;
@@ -113,6 +116,8 @@ export function Dashboard() {
   const [selectedExam, setSelectedExam] = useState<ExamData | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeSection, setActiveSection] = useState('overview');
   const navigate = useNavigate();
 
   // Verificar se é primeira visita do usuário
@@ -123,6 +128,9 @@ export function Dashboard() {
     } else {
       setShowOnboarding(true);
     }
+    
+    // Simular carregamento
+    setTimeout(() => setIsLoading(false), 1500);
   }, []);
 
   const handleOnboardingComplete = (data: UserData) => {
@@ -220,17 +228,19 @@ export function Dashboard() {
               </div>
               
               <div className="flex items-center space-x-3">
+                <ThemeToggle />
                 <NotificationSystem exams={exams} />
                 <Button
                   onClick={() => navigate('/profile')}
                   variant="outline"
+                  className="hover-scale"
                 >
                   <User className="h-4 w-4 mr-2" />
                   Meu Perfil
                 </Button>
                 <Button
                   onClick={() => setShowUploadModal(true)}
-                  className="bg-gradient-primary hover:opacity-90"
+                  className="bg-gradient-primary hover:opacity-90 hover-scale"
                 >
                   <Upload className="h-4 w-4 mr-2" />
                   Enviar Exame
@@ -241,145 +251,201 @@ export function Dashboard() {
         </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Status Cards Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
-          <HealthStatus 
-            status={getOverallHealthStatus()}
-            title="Status Geral"
-            description="Baseado nos últimos exames"
-          />
-          
-          <Card className="border-0 shadow-soft">
-            <CardHeader className="pb-2 lg:pb-3">
-              <CardTitle className="text-xs lg:text-sm font-medium text-muted-foreground flex items-center">
-                <FileText className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
-                <span className="hidden lg:inline">Total de Exames</span>
-                <span className="lg:hidden">Exames</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="text-xl lg:text-3xl font-bold text-foreground">{exams.length}</div>
-              <p className="text-xs lg:text-sm text-muted-foreground">Por IA</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-soft">
-            <CardHeader className="pb-2 lg:pb-3">
-              <CardTitle className="text-xs lg:text-sm font-medium text-muted-foreground flex items-center">
-                <Calendar className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
-                <span className="hidden lg:inline">Último Exame</span>
-                <span className="lg:hidden">Último</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="text-sm lg:text-lg font-semibold text-foreground">
-                {recentExam ? new Date(recentExam.date).toLocaleDateString('pt-BR') : 'Nenhum'}
-              </div>
-              <p className="text-xs lg:text-sm text-muted-foreground truncate">
-                {recentExam ? recentExam.type : 'Envie seu primeiro'}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-soft">
-            <CardHeader className="pb-2 lg:pb-3">
-              <CardTitle className="text-xs lg:text-sm font-medium text-muted-foreground flex items-center">
-                <TrendingUp className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
-                Tendência
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="text-sm lg:text-lg font-semibold text-health-good">Melhorando</div>
-              <p className="text-xs lg:text-sm text-muted-foreground">Histórico</p>
-            </CardContent>
-          </Card>
+        {/* Navigation Tabs */}
+        <div className="flex space-x-1 bg-card rounded-lg p-1 shadow-soft">
+          {[
+            { id: 'overview', label: 'Visão Geral', icon: Activity },
+            { id: 'goals', label: 'Metas', icon: Target },
+            { id: 'charts', label: 'Análises', icon: TrendingUp },
+            { id: 'timeline', label: 'Histórico', icon: Calendar }
+          ].map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setActiveSection(id)}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all hover-scale ${
+                activeSection === id
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              <span className="hidden sm:inline">{label}</span>
+            </button>
+          ))}
         </div>
 
-        {/* Gráficos e Análises */}
-        <div className="space-y-8">
-          <HealthCharts exams={exams} />
-          <ExamComparison exams={exams} />
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          {/* Timeline - Takes 2 columns on large screens */}
-          <div className="xl:col-span-2">
-            <Card className="border-0 shadow-medium">
-              <CardHeader>
-                <CardTitle className="flex items-center text-foreground">
-                  <Activity className="h-5 w-5 mr-2 text-primary" />
-                  Timeline de Exames
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <HealthTimeline exams={exams} onExamClick={setSelectedExam} />
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar with Quick Actions */}
-          <div className="space-y-6">
-            {/* Quick Upload */}
-            <Card className="border-0 shadow-soft">
-              <CardHeader>
-                <CardTitle className="text-lg text-foreground">Upload Rápido</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Envie um novo exame para análise automática da IA
-                </p>
-                <ExamUpload 
-                  onUpload={handleExamUpload} 
-                  isUploading={isUploading}
-                  variant="compact"
+        <LoadingOverlay loading={isLoading} message="Carregando dashboard...">
+          {/* Content based on active section */}
+          {activeSection === 'overview' && (
+            <div className="space-y-8 animate-fade-in">
+              {/* Status Cards Row */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
+                <HealthStatus 
+                  status={getOverallHealthStatus()}
+                  title="Status Geral"
+                  description="Baseado nos últimos exames"
                 />
-              </CardContent>
-            </Card>
+                
+                <Card className="border-0 shadow-soft hover-lift">
+                  <CardHeader className="pb-2 lg:pb-3">
+                    <CardTitle className="text-xs lg:text-sm font-medium text-muted-foreground flex items-center">
+                      <FileText className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
+                      <span className="hidden lg:inline">Total de Exames</span>
+                      <span className="lg:hidden">Exames</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="text-xl lg:text-3xl font-bold text-foreground">{exams.length}</div>
+                    <p className="text-xs lg:text-sm text-muted-foreground">Por IA</p>
+                  </CardContent>
+                </Card>
 
-            {/* Latest Analysis */}
-            {recentExam && (
-              <Card className="border-0 shadow-soft">
+                <Card className="border-0 shadow-soft hover-lift">
+                  <CardHeader className="pb-2 lg:pb-3">
+                    <CardTitle className="text-xs lg:text-sm font-medium text-muted-foreground flex items-center">
+                      <Calendar className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
+                      <span className="hidden lg:inline">Último Exame</span>
+                      <span className="lg:hidden">Último</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="text-sm lg:text-lg font-semibold text-foreground">
+                      {recentExam ? new Date(recentExam.date).toLocaleDateString('pt-BR') : 'Nenhum'}
+                    </div>
+                    <p className="text-xs lg:text-sm text-muted-foreground truncate">
+                      {recentExam ? recentExam.type : 'Envie seu primeiro'}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 shadow-soft hover-lift">
+                  <CardHeader className="pb-2 lg:pb-3">
+                    <CardTitle className="text-xs lg:text-sm font-medium text-muted-foreground flex items-center">
+                      <TrendingUp className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
+                      Tendência
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="text-sm lg:text-lg font-semibold text-health-good">Melhorando</div>
+                    <p className="text-xs lg:text-sm text-muted-foreground">Histórico</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Main Content Grid */}
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                {/* Timeline - Takes 2 columns on large screens */}
+                <div className="xl:col-span-2">
+                  <Card className="border-0 shadow-medium hover-lift">
+                    <CardHeader>
+                      <CardTitle className="flex items-center text-foreground">
+                        <Activity className="h-5 w-5 mr-2 text-primary" />
+                        Timeline de Exames
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <HealthTimeline exams={exams} onExamClick={setSelectedExam} />
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Sidebar with Quick Actions */}
+                <div className="space-y-6">
+                  {/* Quick Upload */}
+                  <Card className="border-0 shadow-soft hover-lift">
+                    <CardHeader>
+                      <CardTitle className="text-lg text-foreground">Upload Rápido</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        Envie um novo exame para análise automática da IA
+                      </p>
+                      <ExamUpload 
+                        onUpload={handleExamUpload} 
+                        isUploading={isUploading}
+                        variant="compact"
+                      />
+                    </CardContent>
+                  </Card>
+
+                  {/* Latest Analysis */}
+                  {recentExam && (
+                    <Card className="border-0 shadow-soft hover-lift">
+                      <CardHeader>
+                        <CardTitle className="text-lg text-foreground">Última Análise</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-foreground">{recentExam.type}</span>
+                          <Badge 
+                            variant="secondary" 
+                            className={`
+                              ${recentExam.status === 'excellent' ? 'bg-health-excellent-bg text-health-excellent' : ''}
+                              ${recentExam.status === 'good' ? 'bg-health-good-bg text-health-good' : ''}
+                              ${recentExam.status === 'warning' ? 'bg-health-warning-bg text-health-warning' : ''}
+                              ${recentExam.status === 'critical' ? 'bg-health-critical-bg text-health-critical' : ''}
+                            `}
+                          >
+                            {recentExam.status === 'excellent' && 'Excelente'}
+                            {recentExam.status === 'good' && 'Bom'}
+                            {recentExam.status === 'warning' && 'Atenção'}
+                            {recentExam.status === 'critical' && 'Crítico'}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{recentExam.summary}</p>
+                        <Button variant="outline" size="sm" className="w-full hover-scale">
+                          Ver Detalhes
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Health Tips */}
+                  <Card className="border-0 shadow-soft bg-gradient-health hover-lift">
+                    <CardContent className="p-6">
+                      <h3 className="font-semibold text-primary-foreground mb-2">💡 Dica de Saúde</h3>
+                      <p className="text-sm text-primary-foreground/90">
+                        Mantenha seus exames atualizados! Recomendamos check-ups regulares a cada 6 meses.
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Goals Section */}
+          {activeSection === 'goals' && (
+            <div className="animate-fade-in">
+              <HealthGoals />
+            </div>
+          )}
+
+          {/* Charts Section */}
+          {activeSection === 'charts' && (
+            <div className="space-y-8 animate-fade-in">
+              <HealthCharts exams={exams} />
+              <ExamComparison exams={exams} />
+            </div>
+          )}
+
+          {/* Timeline Section */}
+          {activeSection === 'timeline' && (
+            <div className="animate-fade-in">
+              <Card className="border-0 shadow-medium hover-lift">
                 <CardHeader>
-                  <CardTitle className="text-lg text-foreground">Última Análise</CardTitle>
+                  <CardTitle className="flex items-center text-foreground">
+                    <Calendar className="h-5 w-5 mr-2 text-primary" />
+                    Histórico Completo de Exames
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-foreground">{recentExam.type}</span>
-                    <Badge 
-                      variant="secondary" 
-                      className={`
-                        ${recentExam.status === 'excellent' ? 'bg-health-excellent-bg text-health-excellent' : ''}
-                        ${recentExam.status === 'good' ? 'bg-health-good-bg text-health-good' : ''}
-                        ${recentExam.status === 'warning' ? 'bg-health-warning-bg text-health-warning' : ''}
-                        ${recentExam.status === 'critical' ? 'bg-health-critical-bg text-health-critical' : ''}
-                      `}
-                    >
-                      {recentExam.status === 'excellent' && 'Excelente'}
-                      {recentExam.status === 'good' && 'Bom'}
-                      {recentExam.status === 'warning' && 'Atenção'}
-                      {recentExam.status === 'critical' && 'Crítico'}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{recentExam.summary}</p>
-                  <Button variant="outline" size="sm" className="w-full">
-                    Ver Detalhes
-                  </Button>
+                <CardContent>
+                  <HealthTimeline exams={exams} onExamClick={setSelectedExam} />
                 </CardContent>
               </Card>
-            )}
-
-            {/* Health Tips */}
-            <Card className="border-0 shadow-soft bg-gradient-health">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-primary-foreground mb-2">💡 Dica de Saúde</h3>
-                <p className="text-sm text-primary-foreground/90">
-                  Mantenha seus exames atualizados! Recomendamos check-ups regulares a cada 6 meses.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+            </div>
+          )}
+        </LoadingOverlay>
       </div>
       </div>
 
