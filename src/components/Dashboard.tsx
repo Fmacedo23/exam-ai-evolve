@@ -11,6 +11,9 @@ import { MobileNav } from "./MobileNav";
 import { UploadModal } from "./UploadModal";
 import { ExamViewer } from "./ExamViewer";
 import { Onboarding } from "./Onboarding";
+import { NotificationSystem } from "./NotificationSystem";
+import { HealthCharts } from "./HealthCharts";
+import { ExamComparison } from "./ExamComparison";
 
 interface ExamData {
   id: string;
@@ -180,6 +183,7 @@ export function Dashboard() {
               </div>
               
               <div className="flex items-center space-x-2">
+                <NotificationSystem exams={exams} />
                 <Button
                   size="sm"
                   variant="outline"
@@ -216,6 +220,7 @@ export function Dashboard() {
               </div>
               
               <div className="flex items-center space-x-3">
+                <NotificationSystem exams={exams} />
                 <Button
                   onClick={() => navigate('/profile')}
                   variant="outline"
@@ -288,6 +293,12 @@ export function Dashboard() {
               <p className="text-xs lg:text-sm text-muted-foreground">Histórico</p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Gráficos e Análises */}
+        <div className="space-y-8">
+          <HealthCharts exams={exams} />
+          <ExamComparison exams={exams} />
         </div>
 
         {/* Main Content Grid */}
