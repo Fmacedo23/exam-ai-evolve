@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Activity, Calendar, TrendingUp, FileText, Heart, Plus, User, Target } from "lucide-react";
+import { Upload, Activity, Calendar, TrendingUp, FileText, Heart, Plus, User, Target, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { HealthTimeline } from "./HealthTimeline";
 import { ExamUpload } from "./ExamUpload";
@@ -17,6 +17,7 @@ import { ExamComparison } from "./ExamComparison";
 import { HealthGoals } from "./HealthGoals";
 import { ThemeToggle } from "./ThemeToggle";
 import { LoadingOverlay } from "./LoadingStates";
+import { Login } from "./Login";
 
 interface ExamData {
   id: string;
@@ -118,20 +119,53 @@ export function Dashboard() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('overview');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   const navigate = useNavigate();
 
-  // Verificar se é primeira visita do usuário
+  // Verificar autenticação e primeira visita
   useEffect(() => {
+    const storedAuth = localStorage.getItem('healthtrack-auth');
     const storedUserData = localStorage.getItem('healthtrack-user');
-    if (storedUserData) {
-      setUserData(JSON.parse(storedUserData));
-    } else {
-      setShowOnboarding(true);
+    
+    if (storedAuth) {
+      const authData = JSON.parse(storedAuth);
+      setIsAuthenticated(true);
+      setUserEmail(authData.email);
+      
+      // Se está autenticado, verificar se precisa do onboarding
+      if (storedUserData) {
+        setUserData(JSON.parse(storedUserData));
+      } else {
+        setShowOnboarding(true);
+      }
     }
     
     // Simular carregamento
     setTimeout(() => setIsLoading(false), 1500);
   }, []);
+
+  const handleLogin = (email: string) => {
+    const authData = { email, loginTime: new Date().toISOString() };
+    localStorage.setItem('healthtrack-auth', JSON.stringify(authData));
+    setIsAuthenticated(true);
+    setUserEmail(email);
+    
+    // Verificar se é primeira vez (não tem dados de usuário)
+    const storedUserData = localStorage.getItem('healthtrack-user');
+    if (!storedUserData) {
+      setShowOnboarding(true);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('healthtrack-auth');
+    localStorage.removeItem('healthtrack-user');
+    setIsAuthenticated(false);
+    setUserEmail("");
+    setUserData(null);
+    setShowOnboarding(false);
+  };
 
   const handleOnboardingComplete = (data: UserData) => {
     localStorage.setItem('healthtrack-user', JSON.stringify(data));
@@ -173,6 +207,16 @@ export function Dashboard() {
 
   const recentExam = exams[0];
 
+  // Renderizar tela de login se não autenticado
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+  // Renderizar onboarding se usuário logado mas é primeira vez
+  if (showOnboarding) {
+    return <Onboarding onComplete={handleOnboardingComplete} />;
+  }
+
   return (
     <>
       <div className="min-h-screen bg-gradient-surface">
@@ -192,13 +236,17 @@ export function Dashboard() {
               
               <div className="flex items-center space-x-2">
                 <NotificationSystem exams={exams} />
+                <div className="flex items-center space-x-1 px-2 py-1 bg-muted rounded text-xs">
+                  <User className="h-3 w-3" />
+                  <span className="truncate max-w-20">{userEmail.split('@')[0]}</span>
+                </div>
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => navigate('/profile')}
+                  onClick={handleLogout}
                   className="p-2"
                 >
-                  <User className="h-4 w-4" />
+                  <LogOut className="h-4 w-4" />
                 </Button>
                 <Button
                   size="sm"
@@ -230,13 +278,17 @@ export function Dashboard() {
               <div className="flex items-center space-x-3">
                 <ThemeToggle />
                 <NotificationSystem exams={exams} />
+                <div className="flex items-center space-x-2 px-3 py-2 bg-muted rounded-lg">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground">{userEmail}</span>
+                </div>
                 <Button
-                  onClick={() => navigate('/profile')}
+                  onClick={handleLogout}
                   variant="outline"
                   className="hover-scale"
                 >
-                  <User className="h-4 w-4 mr-2" />
-                  Meu Perfil
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sair
                 </Button>
                 <Button
                   onClick={() => setShowUploadModal(true)}
@@ -463,11 +515,6 @@ export function Dashboard() {
           exam={selectedExam}
           onClose={() => setSelectedExam(null)}
         />
-      )}
-
-      {/* Onboarding */}
-      {showOnboarding && (
-        <Onboarding onComplete={handleOnboardingComplete} />
       )}
     </>
   );
