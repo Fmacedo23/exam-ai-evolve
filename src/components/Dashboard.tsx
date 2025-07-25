@@ -17,6 +17,7 @@ import { ExamComparison } from "./ExamComparison";
 import { HealthGoals } from "./HealthGoals";
 import { ThemeToggle } from "./ThemeToggle";
 import { LoadingOverlay } from "./LoadingStates";
+import { Login } from "./Login";
 
 interface ExamData {
   id: string;
@@ -109,6 +110,11 @@ interface UserData {
   conditions: string[];
 }
 
+interface AuthData {
+  email: string;
+  isLoggedIn: boolean;
+}
+
 export function Dashboard() {
   const [exams, setExams] = useState<ExamData[]>(mockExams);
   const [isUploading, setIsUploading] = useState(false);
@@ -116,27 +122,57 @@ export function Dashboard() {
   const [selectedExam, setSelectedExam] = useState<ExamData | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [authData, setAuthData] = useState<AuthData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('overview');
   const navigate = useNavigate();
 
-  // Verificar se é primeira visita do usuário
+  // Verificar autenticação e dados do usuário
   useEffect(() => {
+    const storedAuthData = localStorage.getItem('healthtrack-auth');
     const storedUserData = localStorage.getItem('healthtrack-user');
-    if (storedUserData) {
-      setUserData(JSON.parse(storedUserData));
-    } else {
-      setShowOnboarding(true);
+    
+    if (storedAuthData) {
+      const authInfo = JSON.parse(storedAuthData);
+      setAuthData(authInfo);
+      
+      if (storedUserData) {
+        setUserData(JSON.parse(storedUserData));
+      } else {
+        // Usuário logado mas não fez onboarding
+        setShowOnboarding(true);
+      }
     }
     
     // Simular carregamento
     setTimeout(() => setIsLoading(false), 1500);
   }, []);
 
+  const handleLogin = (email: string, password: string) => {
+    const authInfo = { email, isLoggedIn: true };
+    localStorage.setItem('healthtrack-auth', JSON.stringify(authInfo));
+    setAuthData(authInfo);
+    
+    // Verificar se já tem dados de usuário
+    const storedUserData = localStorage.getItem('healthtrack-user');
+    if (!storedUserData) {
+      setShowOnboarding(true);
+    } else {
+      setUserData(JSON.parse(storedUserData));
+    }
+  };
+
   const handleOnboardingComplete = (data: UserData) => {
     localStorage.setItem('healthtrack-user', JSON.stringify(data));
     setUserData(data);
     setShowOnboarding(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('healthtrack-auth');
+    localStorage.removeItem('healthtrack-user');
+    setAuthData(null);
+    setUserData(null);
   };
 
   const handleExamUpload = (file: File) => {
@@ -171,6 +207,16 @@ export function Dashboard() {
     return "excellent";
   };
 
+  // Se não está logado, mostrar tela de login
+  if (!authData?.isLoggedIn) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+  // Se está logado mas não completou onboarding, mostrar onboarding
+  if (showOnboarding) {
+    return <Onboarding onComplete={handleOnboardingComplete} />;
+  }
+
   const recentExam = exams[0];
 
   return (
@@ -195,7 +241,7 @@ export function Dashboard() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => navigate('/profile')}
+                  onClick={handleLogout}
                   className="p-2"
                 >
                   <User className="h-4 w-4" />
@@ -231,12 +277,12 @@ export function Dashboard() {
                 <ThemeToggle />
                 <NotificationSystem exams={exams} />
                 <Button
-                  onClick={() => navigate('/profile')}
+                  onClick={handleLogout}
                   variant="outline"
                   className="hover-scale"
                 >
                   <User className="h-4 w-4 mr-2" />
-                  Meu Perfil
+                  Sair ({authData?.email})
                 </Button>
                 <Button
                   onClick={() => setShowUploadModal(true)}
