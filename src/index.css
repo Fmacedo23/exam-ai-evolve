@@ -241,25 +241,6 @@ body {
   color: hsl(var(--primary-foreground));
 }
 
-/* Enhanced typography for better readability for older users */
-@layer base {
-  body {
-    font-size: 18px;
-    line-height: 1.6;
-  }
-  
-  h1, h2, h3 {
-    font-weight: 600;
-    letter-spacing: -0.02em;
-  }
-  
-  button, .button {
-    font-size: 16px;
-    font-weight: 500;
-    min-height: 44px; /* Better touch targets */
-  }
-}
-
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }

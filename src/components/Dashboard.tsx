@@ -17,7 +17,6 @@ import { ExamComparison } from "./ExamComparison";
 import { HealthGoals } from "./HealthGoals";
 import { ThemeToggle } from "./ThemeToggle";
 import { LoadingOverlay } from "./LoadingStates";
-import { Login } from "./Login";
 
 interface ExamData {
   id: string;
@@ -110,11 +109,6 @@ interface UserData {
   conditions: string[];
 }
 
-interface AuthData {
-  email: string;
-  isLoggedIn: boolean;
-}
-
 export function Dashboard() {
   const [exams, setExams] = useState<ExamData[]>(mockExams);
   const [isUploading, setIsUploading] = useState(false);
@@ -122,57 +116,27 @@ export function Dashboard() {
   const [selectedExam, setSelectedExam] = useState<ExamData | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [authData, setAuthData] = useState<AuthData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('overview');
   const navigate = useNavigate();
 
-  // Verificar autenticação e dados do usuário
+  // Verificar se é primeira visita do usuário
   useEffect(() => {
-    const storedAuthData = localStorage.getItem('healthtrack-auth');
     const storedUserData = localStorage.getItem('healthtrack-user');
-    
-    if (storedAuthData) {
-      const authInfo = JSON.parse(storedAuthData);
-      setAuthData(authInfo);
-      
-      if (storedUserData) {
-        setUserData(JSON.parse(storedUserData));
-      } else {
-        // Usuário logado mas não fez onboarding
-        setShowOnboarding(true);
-      }
+    if (storedUserData) {
+      setUserData(JSON.parse(storedUserData));
+    } else {
+      setShowOnboarding(true);
     }
     
     // Simular carregamento
     setTimeout(() => setIsLoading(false), 1500);
   }, []);
 
-  const handleLogin = (email: string, password: string) => {
-    const authInfo = { email, isLoggedIn: true };
-    localStorage.setItem('healthtrack-auth', JSON.stringify(authInfo));
-    setAuthData(authInfo);
-    
-    // Verificar se já tem dados de usuário
-    const storedUserData = localStorage.getItem('healthtrack-user');
-    if (!storedUserData) {
-      setShowOnboarding(true);
-    } else {
-      setUserData(JSON.parse(storedUserData));
-    }
-  };
-
   const handleOnboardingComplete = (data: UserData) => {
     localStorage.setItem('healthtrack-user', JSON.stringify(data));
     setUserData(data);
     setShowOnboarding(false);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('healthtrack-auth');
-    localStorage.removeItem('healthtrack-user');
-    setAuthData(null);
-    setUserData(null);
   };
 
   const handleExamUpload = (file: File) => {
@@ -207,16 +171,6 @@ export function Dashboard() {
     return "excellent";
   };
 
-  // Se não está logado, mostrar tela de login
-  if (!authData?.isLoggedIn) {
-    return <Login onLogin={handleLogin} />;
-  }
-
-  // Se está logado mas não completou onboarding, mostrar onboarding
-  if (showOnboarding) {
-    return <Onboarding onComplete={handleOnboardingComplete} />;
-  }
-
   const recentExam = exams[0];
 
   return (
@@ -241,7 +195,7 @@ export function Dashboard() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={handleLogout}
+                  onClick={() => navigate('/profile')}
                   className="p-2"
                 >
                   <User className="h-4 w-4" />
@@ -277,12 +231,12 @@ export function Dashboard() {
                 <ThemeToggle />
                 <NotificationSystem exams={exams} />
                 <Button
-                  onClick={handleLogout}
+                  onClick={() => navigate('/profile')}
                   variant="outline"
                   className="hover-scale"
                 >
                   <User className="h-4 w-4 mr-2" />
-                  Sair ({authData?.email})
+                  Meu Perfil
                 </Button>
                 <Button
                   onClick={() => setShowUploadModal(true)}
@@ -297,138 +251,166 @@ export function Dashboard() {
         </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Simplified Navigation */}
-        <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
+        {/* Navigation Tabs */}
+        <div className="flex space-x-1 bg-card rounded-lg p-1 shadow-soft">
           {[
-            { id: 'overview', label: 'Meus Exames', icon: Activity },
-            { id: 'goals', label: 'Minhas Metas', icon: Target }
+            { id: 'overview', label: 'Visão Geral', icon: Activity },
+            { id: 'goals', label: 'Metas', icon: Target },
+            { id: 'charts', label: 'Análises', icon: TrendingUp },
+            { id: 'timeline', label: 'Histórico', icon: Calendar }
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setActiveSection(id)}
-              className={`flex items-center justify-center gap-3 px-6 py-4 rounded-xl text-lg font-semibold transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all hover-scale ${
                 activeSection === id
-                  ? 'bg-primary text-primary-foreground shadow-medium'
-                  : 'bg-card text-foreground hover:bg-muted border border-border'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Icon className="h-6 w-6" />
-              {label}
+              <Icon className="h-4 w-4" />
+              <span className="hidden sm:inline">{label}</span>
             </button>
           ))}
         </div>
 
         <LoadingOverlay loading={isLoading} message="Carregando dashboard...">
-          {/* Simplified Content */}
+          {/* Content based on active section */}
           {activeSection === 'overview' && (
-            <div className="space-y-12 animate-fade-in">
-              {/* Status Summary Card - Single Large Card */}
-              <Card className="border-0 shadow-medium p-8">
-                <div className="text-center space-y-6">
-                  <div className="flex items-center justify-center">
-                    <HealthStatus 
-                      status={getOverallHealthStatus()}
-                      title="Como está minha saúde?"
-                      description="Resumo baseado nos últimos exames"
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
-                    <div className="text-center space-y-2">
-                      <div className="text-4xl font-bold text-foreground">{exams.length}</div>
-                      <p className="text-lg text-muted-foreground">Exames analisados</p>
-                    </div>
-                    <div className="text-center space-y-2">
-                      <div className="text-xl font-semibold text-foreground">
-                        {recentExam ? new Date(recentExam.date).toLocaleDateString('pt-BR') : 'Nenhum exame'}
-                      </div>
-                      <p className="text-lg text-muted-foreground">Último exame</p>
-                    </div>
-                  </div>
-                </div>
-              </Card>
+            <div className="space-y-8 animate-fade-in">
+              {/* Status Cards Row */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
+                <HealthStatus 
+                  status={getOverallHealthStatus()}
+                  title="Status Geral"
+                  description="Baseado nos últimos exames"
+                />
+                
+                <Card className="border-0 shadow-soft hover-lift">
+                  <CardHeader className="pb-2 lg:pb-3">
+                    <CardTitle className="text-xs lg:text-sm font-medium text-muted-foreground flex items-center">
+                      <FileText className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
+                      <span className="hidden lg:inline">Total de Exames</span>
+                      <span className="lg:hidden">Exames</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="text-xl lg:text-3xl font-bold text-foreground">{exams.length}</div>
+                    <p className="text-xs lg:text-sm text-muted-foreground">Por IA</p>
+                  </CardContent>
+                </Card>
 
-              {/* Action Button */}
-              <div className="text-center">
-                <Button
-                  onClick={() => setShowUploadModal(true)}
-                  size="lg"
-                  className="bg-gradient-primary hover:opacity-90 text-xl px-12 py-6 rounded-2xl shadow-strong"
-                >
-                  <Upload className="h-6 w-6 mr-3" />
-                  Enviar Novo Exame
-                </Button>
+                <Card className="border-0 shadow-soft hover-lift">
+                  <CardHeader className="pb-2 lg:pb-3">
+                    <CardTitle className="text-xs lg:text-sm font-medium text-muted-foreground flex items-center">
+                      <Calendar className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
+                      <span className="hidden lg:inline">Último Exame</span>
+                      <span className="lg:hidden">Último</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="text-sm lg:text-lg font-semibold text-foreground">
+                      {recentExam ? new Date(recentExam.date).toLocaleDateString('pt-BR') : 'Nenhum'}
+                    </div>
+                    <p className="text-xs lg:text-sm text-muted-foreground truncate">
+                      {recentExam ? recentExam.type : 'Envie seu primeiro'}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 shadow-soft hover-lift">
+                  <CardHeader className="pb-2 lg:pb-3">
+                    <CardTitle className="text-xs lg:text-sm font-medium text-muted-foreground flex items-center">
+                      <TrendingUp className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
+                      Tendência
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="text-sm lg:text-lg font-semibold text-health-good">Melhorando</div>
+                    <p className="text-xs lg:text-sm text-muted-foreground">Histórico</p>
+                  </CardContent>
+                </Card>
               </div>
 
-              {/* Recent Exam Card */}
-              {recentExam && (
-                <Card className="border-0 shadow-medium p-8">
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-2xl font-bold text-foreground">Último Resultado</h2>
-                      <Badge 
-                        className={`text-lg px-4 py-2 ${
-                          recentExam.status === 'excellent' ? 'bg-health-excellent-bg text-health-excellent' : ''
-                        }${recentExam.status === 'good' ? 'bg-health-good-bg text-health-good' : ''}${
-                          recentExam.status === 'warning' ? 'bg-health-warning-bg text-health-warning' : ''
-                        }${recentExam.status === 'critical' ? 'bg-health-critical-bg text-health-critical' : ''}`}
-                      >
-                        {recentExam.status === 'excellent' && 'Excelente'}
-                        {recentExam.status === 'good' && 'Bom'}
-                        {recentExam.status === 'warning' && 'Atenção'}
-                        {recentExam.status === 'critical' && 'Crítico'}
-                      </Badge>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="text-xl font-semibold text-foreground mb-2">{recentExam.type}</h3>
-                        <p className="text-lg text-muted-foreground leading-relaxed">{recentExam.summary}</p>
-                      </div>
-                      
-                      <Button 
-                        variant="outline" 
-                        size="lg"
-                        onClick={() => setSelectedExam(recentExam)}
-                        className="text-lg px-8 py-4"
-                      >
-                        Ver Detalhes Completos
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              )}
+              {/* Main Content Grid */}
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                {/* Timeline - Takes 2 columns on large screens */}
+                <div className="xl:col-span-2">
+                  <Card className="border-0 shadow-medium hover-lift">
+                    <CardHeader>
+                      <CardTitle className="flex items-center text-foreground">
+                        <Activity className="h-5 w-5 mr-2 text-primary" />
+                        Timeline de Exames
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <HealthTimeline exams={exams} onExamClick={setSelectedExam} />
+                    </CardContent>
+                  </Card>
+                </div>
 
-              {/* Simple Timeline */}
-              {exams.length > 1 && (
-                <Card className="border-0 shadow-medium p-8">
-                  <h2 className="text-2xl font-bold text-foreground mb-6">Histórico de Exames</h2>
-                  <div className="space-y-4">
-                    {exams.slice(0, 3).map((exam) => (
-                      <div key={exam.id} className="flex items-center justify-between p-4 bg-muted rounded-xl">
-                        <div>
-                          <h3 className="text-lg font-semibold text-foreground">{exam.type}</h3>
-                          <p className="text-base text-muted-foreground">
-                            {new Date(exam.date).toLocaleDateString('pt-BR')}
-                          </p>
+                {/* Sidebar with Quick Actions */}
+                <div className="space-y-6">
+                  {/* Quick Upload */}
+                  <Card className="border-0 shadow-soft hover-lift">
+                    <CardHeader>
+                      <CardTitle className="text-lg text-foreground">Upload Rápido</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        Envie um novo exame para análise automática da IA
+                      </p>
+                      <ExamUpload 
+                        onUpload={handleExamUpload} 
+                        isUploading={isUploading}
+                        variant="compact"
+                      />
+                    </CardContent>
+                  </Card>
+
+                  {/* Latest Analysis */}
+                  {recentExam && (
+                    <Card className="border-0 shadow-soft hover-lift">
+                      <CardHeader>
+                        <CardTitle className="text-lg text-foreground">Última Análise</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-foreground">{recentExam.type}</span>
+                          <Badge 
+                            variant="secondary" 
+                            className={`
+                              ${recentExam.status === 'excellent' ? 'bg-health-excellent-bg text-health-excellent' : ''}
+                              ${recentExam.status === 'good' ? 'bg-health-good-bg text-health-good' : ''}
+                              ${recentExam.status === 'warning' ? 'bg-health-warning-bg text-health-warning' : ''}
+                              ${recentExam.status === 'critical' ? 'bg-health-critical-bg text-health-critical' : ''}
+                            `}
+                          >
+                            {recentExam.status === 'excellent' && 'Excelente'}
+                            {recentExam.status === 'good' && 'Bom'}
+                            {recentExam.status === 'warning' && 'Atenção'}
+                            {recentExam.status === 'critical' && 'Crítico'}
+                          </Badge>
                         </div>
-                        <Badge 
-                          className={`text-base px-3 py-1 ${
-                            exam.status === 'excellent' ? 'bg-health-excellent-bg text-health-excellent' : ''
-                          }${exam.status === 'good' ? 'bg-health-good-bg text-health-good' : ''}${
-                            exam.status === 'warning' ? 'bg-health-warning-bg text-health-warning' : ''
-                          }${exam.status === 'critical' ? 'bg-health-critical-bg text-health-critical' : ''}`}
-                        >
-                          {exam.status === 'excellent' && 'Excelente'}
-                          {exam.status === 'good' && 'Bom'}
-                          {exam.status === 'warning' && 'Atenção'}
-                          {exam.status === 'critical' && 'Crítico'}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              )}
+                        <p className="text-sm text-muted-foreground">{recentExam.summary}</p>
+                        <Button variant="outline" size="sm" className="w-full hover-scale">
+                          Ver Detalhes
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Health Tips */}
+                  <Card className="border-0 shadow-soft bg-gradient-health hover-lift">
+                    <CardContent className="p-6">
+                      <h3 className="font-semibold text-primary-foreground mb-2">💡 Dica de Saúde</h3>
+                      <p className="text-sm text-primary-foreground/90">
+                        Mantenha seus exames atualizados! Recomendamos check-ups regulares a cada 6 meses.
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
             </div>
           )}
 
