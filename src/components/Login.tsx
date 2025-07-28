@@ -36,40 +36,40 @@ export function Login({ onLogin }: LoginProps) {
 
   return (
     <div className="min-h-screen bg-gradient-surface flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
+      <div className="w-full max-w-md space-y-8 animate-fade-in">
         {/* Logo/Header */}
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-6">
           <div className="flex justify-center">
-            <div className="p-4 bg-gradient-primary rounded-2xl shadow-soft">
+            <div className="p-4 bg-gradient-primary rounded-2xl shadow-soft hover-lift">
               <Heart className="h-12 w-12 text-primary-foreground" />
             </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Minha Saúde</h1>
-            <p className="text-lg text-muted-foreground">Análise Inteligente de Exames</p>
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold text-foreground">Minha Saúde</h1>
+            <p className="text-xl text-muted-foreground">Análise Inteligente de Exames</p>
           </div>
         </div>
 
         {/* Demo Notice */}
-        <Alert className="border-warning/20 bg-warning/10">
-          <AlertCircle className="h-5 w-5 text-warning" />
-          <AlertDescription className="text-warning text-base">
+        <Alert className="border-health-warning/20 bg-health-warning-bg animate-slide-up">
+          <AlertCircle className="h-5 w-5 text-health-warning" />
+          <AlertDescription className="text-health-warning text-lg">
             <strong>Modo Demonstração:</strong> Use qualquer email e senha para acessar
           </AlertDescription>
         </Alert>
 
         {/* Login Form */}
-        <Card className="border-0 shadow-medium">
-          <CardHeader className="text-center pb-4">
-            <CardTitle className="text-2xl font-bold">
+        <Card className="border-0 shadow-medium hover-lift">
+          <CardHeader className="text-center pb-6">
+            <CardTitle className="text-3xl font-bold text-foreground">
               {isLogin ? "Entrar na Conta" : "Criar Conta"}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email */}
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-base font-medium">
+              <div className="space-y-3">
+                <Label htmlFor="email" className="text-lg font-semibold text-foreground">
                   Email
                 </Label>
                 <Input
@@ -78,14 +78,14 @@ export function Login({ onLogin }: LoginProps) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu@email.com"
-                  className="h-14 text-lg"
+                  className="h-16 text-xl rounded-lg border-2 focus:border-primary transition-all"
                   required
                 />
               </div>
 
               {/* Password */}
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-base font-medium">
+              <div className="space-y-3">
+                <Label htmlFor="password" className="text-lg font-semibold text-foreground">
                   Senha
                 </Label>
                 <div className="relative">
@@ -95,20 +95,20 @@ export function Login({ onLogin }: LoginProps) {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Digite sua senha"
-                    className="h-14 text-lg pr-12"
+                    className="h-16 text-xl pr-14 rounded-lg border-2 focus:border-primary transition-all"
                     required
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 h-12 w-12 hover:bg-accent"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
+                      <EyeOff className="h-6 w-6" />
                     ) : (
-                      <Eye className="h-5 w-5" />
+                      <Eye className="h-6 w-6" />
                     )}
                   </Button>
                 </div>
@@ -116,8 +116,8 @@ export function Login({ onLogin }: LoginProps) {
 
               {/* Confirm Password - Only for registration */}
               {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-base font-medium">
+                <div className="space-y-3">
+                  <Label htmlFor="confirmPassword" className="text-lg font-semibold text-foreground">
                     Confirmar Senha
                   </Label>
                   <div className="relative">
@@ -127,20 +127,20 @@ export function Login({ onLogin }: LoginProps) {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Confirme sua senha"
-                      className="h-14 text-lg pr-12"
+                      className="h-16 text-xl pr-14 rounded-lg border-2 focus:border-primary transition-all"
                       required
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 h-12 w-12 hover:bg-accent"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
                       {showConfirmPassword ? (
-                        <EyeOff className="h-5 w-5" />
+                        <EyeOff className="h-6 w-6" />
                       ) : (
-                        <Eye className="h-5 w-5" />
+                        <Eye className="h-6 w-6" />
                       )}
                     </Button>
                   </div>
@@ -150,13 +150,13 @@ export function Login({ onLogin }: LoginProps) {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full h-14 text-lg font-semibold bg-gradient-primary hover:opacity-90 transition-all"
+                className="w-full h-16 text-xl font-bold bg-gradient-primary hover:opacity-90 transition-all hover-scale rounded-lg shadow-soft"
               >
                 {isLogin ? "Entrar" : "Criar Conta"}
               </Button>
 
               {/* Toggle between Login/Register */}
-              <div className="text-center">
+              <div className="text-center pt-4">
                 <Button
                   type="button"
                   variant="link"
@@ -165,7 +165,7 @@ export function Login({ onLogin }: LoginProps) {
                     setPassword("");
                     setConfirmPassword("");
                   }}
-                  className="text-base"
+                  className="text-lg text-primary hover:text-primary/80 transition-colors"
                 >
                   {isLogin 
                     ? "Não tem conta? Criar uma nova"
@@ -179,7 +179,7 @@ export function Login({ onLogin }: LoginProps) {
 
         {/* Footer */}
         <div className="text-center text-muted-foreground">
-          <p className="text-base">Sistema de Análise de Exames com IA</p>
+          <p className="text-lg">Sistema de Análise de Exames com IA</p>
         </div>
       </div>
     </div>
