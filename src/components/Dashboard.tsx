@@ -18,6 +18,7 @@ import { HealthGoals } from "./HealthGoals";
 import { ThemeToggle } from "./ThemeToggle";
 import { LoadingOverlay } from "./LoadingStates";
 import { Login } from "./Login";
+import { GuidedTour, useGuidedTour } from "./GuidedTour";
 
 interface ExamData {
   id: string;
@@ -122,6 +123,7 @@ export function Dashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const navigate = useNavigate();
+  const { shouldShowTour, closeTour } = useGuidedTour();
 
   // Verificar autenticação e primeira visita
   useEffect(() => {
@@ -221,7 +223,7 @@ export function Dashboard() {
     <>
       <div className="min-h-screen bg-gradient-surface">
         {/* Mobile Header */}
-        <header className="bg-card shadow-soft border-b border-border lg:hidden">
+        <header data-tour="header" className="bg-card shadow-soft border-b border-border lg:hidden">
           <div className="px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -262,7 +264,7 @@ export function Dashboard() {
         </header>
 
         {/* Desktop Header */}
-        <header className="hidden lg:block bg-card shadow-soft border-b border-border">
+        <header data-tour="header" className="hidden lg:block bg-card shadow-soft border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -291,6 +293,7 @@ export function Dashboard() {
                   Sair
                 </Button>
                 <Button
+                  data-tour="upload-button"
                   onClick={() => setShowUploadModal(true)}
                   className="bg-gradient-primary hover:opacity-90 hover-scale"
                 >
@@ -304,7 +307,7 @@ export function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Navigation Tabs */}
-        <div className="flex space-x-1 bg-card rounded-lg p-1 shadow-soft">
+        <div data-tour="navigation-tabs" className="flex space-x-1 bg-card rounded-lg p-1 shadow-soft">
           {[
             { id: 'overview', label: 'Visão Geral', icon: Activity },
             { id: 'goals', label: 'Metas', icon: Target },
@@ -313,6 +316,7 @@ export function Dashboard() {
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
+              data-tour={id === 'goals' ? 'goals-tab' : undefined}
               onClick={() => setActiveSection(id)}
               className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all hover-scale ${
                 activeSection === id
@@ -388,7 +392,7 @@ export function Dashboard() {
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                 {/* Timeline - Takes 2 columns on large screens */}
                 <div className="xl:col-span-2">
-                  <Card className="border-0 shadow-medium hover-lift">
+                  <Card data-tour="timeline-card" className="border-0 shadow-medium hover-lift">
                     <CardHeader>
                       <CardTitle className="flex items-center text-foreground">
                         <Activity className="h-5 w-5 mr-2 text-primary" />
