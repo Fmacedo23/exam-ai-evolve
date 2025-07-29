@@ -520,6 +520,9 @@ export function Dashboard() {
           onClose={() => setSelectedExam(null)}
         />
       )}
+
+      {/* Guided Tour */}
+      <GuidedTour isOpen={shouldShowTour} onClose={closeTour} />
     </>
   );
 }
